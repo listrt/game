@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>俄罗斯方块</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#000;color:#fff;display:flex;flex-direction:column;align-items:center;padding:10px;font-family:system-ui}
+#game{border:2px solid #666;background:#111;max-width:100%}
+.ctrl{margin-top:12px;display:grid;grid-template-columns:60px 60px 60px;gap:8px}
+button{width:60px;height:60px;font-size:24px;border:none;border-radius:8px;background:#333;color:#fff;touch-action:none}
+#downBtn{grid-column:2}
+#restartBtn{margin-top:10px;width:140px;height:50px;font-size:18px;background:#c0392b}
+</style>
+</head>
+<body>
+<canvas id="game" width="240" height="480"></canvas>
+<div class="ctrl">
+<button id="leftBtn">←</button>
+<button id="rotateBtn">↻</button>
+<button id="rightBtn">→</button>
+<button id="downBtn">↓</button>
+</div>
+<button id="restartBtn">重新开始</button>
+<script>
+const canvas=document.getElementById('game');
+const ctx=canvas.getContext('2d');
+const BLOCK=24;
+const COLS=10,ROWS=20;
+const SHAPES=[
+  [[1,1,1,1]],
+  [[1,1],[1,1]],
+  [[0,1,0],[1,1,1]],
+  [[1,0,0],[1,1,1]],
+  [[0,0,1],[1,1,1]],
+  [[1,1,0],[0,1,1]],
+  [[0,1,1],[1,1,0]]
+];
+let board,shape,pos,timer;
+let isGameOver=false;
+
+function initGame(){
+  clearInterval(timer);
+  isGameOver=false;
+  board=Array(ROWS).fill().map(()=>Array(COLS).fill(0));
+  pos={x:3,y:0};
+  newShape();
+  draw();
+  timer=setInterval(down,600);
+}
+
+function newShape(){
+  const idx=Math.floor(Math.random()*SHAPES.length);
+  shape=SHAPES[idx];
+  pos={x:Math.floor((COLS-shape[0].length)/2),y:0};
+  //生成方块直接碰撞 = 游戏失败
+  if(check()){
+    gameOver();
+  }
+}
+function check(offX=0,offY=0,s=shape){
+  for(let y=0;y<s.length;y++)
+    for(let x=0;x<s[y].length;x++)
+      if(s[y][x]){
+        const nx=pos.x+x+offX,ny=pos.y+y+offY;
+        if(nx<0||nx>=COLS||ny>=ROWS||(ny>=0&&board[ny][nx])) return true;
+      }
+  return false;
+}
+function rotate(){
+  if(isGameOver)return;
+  const rot=shape[0].map((_,i)=>shape.map(r=>r[i]).reverse());
+  if(!check(0,0,rot)) shape=rot;
+}
+function merge(){
+  for(let y=0;y<shape.length;y++)
+    for(let x=0;x<shape[y].length;x++)
+      if(shape[y][x]) board[pos.y+y][pos.x+x]=1;
+  clearLine();
+  newShape();
+}
+function clearLine(){
+  for(let y=ROWS-1;y>=0;y--){
+    if(board[y].every(v=>v)){
+      board.splice(y,1);
+      board.unshift(Array(COLS).fill(0));
+      y++;
+    }
+  }
+}
+function draw(){
+  ctx.fillStyle='#111';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle='#00ccff';
+  for(let y=0;y<ROWS;y++)
+    for(let x=0;x<COLS;x++)
+      if(board[y][x]) ctx.fillRect(x*BLOCK,y*BLOCK,BLOCK-1,BLOCK-1);
+  if(!isGameOver){
+    ctx.fillStyle='#ffaa00';
+    for(let y=0;y<shape.length;y++)
+      for(let x=0;x<shape[y].length;x++)
+        if(shape[y][x]) ctx.fillRect((pos.x+x)*BLOCK,(pos.y+y)*BLOCK,BLOCK-1,BLOCK-1);
+  }
+  //失败文字
+  if(isGameOver){
+    ctx.fillStyle="red";
+    ctx.font="26px system-ui";
+    ctx.textAlign="center";
+    ctx.fillText("游戏结束",canvas.width/2,canvas.height/2);
+  }
+}
+function down(){
+  if(isGameOver)return;
+  if(!check(0,1)) pos.y++;
+  else merge();
+  draw();
+}
+function gameOver(){
+  isGameOver=true;
+  clearInterval(timer);
+  draw();
+}
+//键盘
+document.addEventListener('keydown',e=>{
+  if(isGameOver)return;
+  if(e.key==='ArrowLeft'&&!check(-1,0)) pos.x--;
+  if(e.key==='ArrowRight'&&!check(1,0)) pos.x++;
+  if(e.key==='ArrowDown') down();
+  if(e.key==='ArrowUp') rotate();
+  draw();
+});
+//手机按钮
+document.getElementById('leftBtn').addEventListener('touchstart',(e)=>{
+  e.preventDefault();
+  if(isGameOver)return;
+  if(!check(-1,0))pos.x--;draw();
+})
+document.getElementById('rightBtn').addEventListener('touchstart',(e)=>{
+  e.preventDefault();
+  if(isGameOver)return;
+  if(!check(1,0))pos.x++;draw();
+})
+document.getElementById('rotateBtn').addEventListener('touchstart',(e)=>{
+  e.preventDefault();
+  if(isGameOver)return;
+  rotate();draw();
+})
+document.getElementById('downBtn').addEventListener('touchstart',(e)=>{
+  e.preventDefault();
+  if(isGameOver)return;
+  down();
+})
+//重开按键
+document.getElementById('restartBtn').addEventListener('touchstart',(e)=>{e.preventDefault();initGame();})
+document.getElementById('restartBtn').addEventListener('click',()=>initGame());
+
+initGame();
+</script>
+</body>
+</html>
