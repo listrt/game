@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>rangtt游戏菜单</title>
+    <title>rangtt · 三游戏菜单</title>
     <style>
         /* ============================================================
-               注册自定义属性（让渐变旋转平滑）
+               注册自定义属性（渐变旋转 & 流光）
                ============================================================ */
         @property --angle {
             syntax: "<angle>";
@@ -20,7 +20,7 @@
         }
 
         /* ============================================================
-               全局背景
+               全局背景 · 深邃星云
                ============================================================ */
         * {
             margin: 0;
@@ -41,7 +41,7 @@
             overflow: hidden;
         }
 
-        /* 背景浮动星云（纯 CSS） */
+        /* 浮动星云 (纯CSS) */
         body::before,
         body::after {
             content: '';
@@ -70,16 +70,12 @@
         }
 
         @keyframes cosmicDrift {
-            0% {
-                transform: translate(0, 0) scale(1);
-            }
-            100% {
-                transform: translate(30px, -20px) scale(1.2);
-            }
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(30px, -20px) scale(1.2); }
         }
 
         /* ============================================================
-               主容器（呼吸光晕柔和）
+               主容器 · 呼吸光晕
                ============================================================ */
         .launcher {
             position: relative;
@@ -94,12 +90,11 @@
             transition: filter 1.5s ease;
         }
         .launcher:hover {
-            /* 整体光晕缓慢扩散，但不亮 */
             filter: drop-shadow(0 0 60px rgba(180, 100, 255, 0.10));
         }
 
         /* ============================================================
-               方形圆角卡片 —— 一切变化都走 transition
+               游戏卡片 · 方形圆角 · 持续旋转边框 + 浮动
                ============================================================ */
         .game-card {
             position: relative;
@@ -112,7 +107,8 @@
             border-radius: 32px;
             text-decoration: none;
             color: #fff;
-            /* 锥形渐变边框 —— 持续旋转，不暂停 */
+
+            /* 锥形渐变边框 (旋转) */
             background: conic-gradient(from var(--angle) at 50% 50%,
                     rgba(255, 80, 180, 0.35),
                     rgba(80, 200, 255, 0.35),
@@ -120,12 +116,12 @@
                     rgba(200, 120, 255, 0.35));
             background-blend-mode: screen;
             padding: 4px;
-            animation: spinBorder 12s linear infinite;
-            /* 轻微浮动，非常柔和 */
-            transform: translateY(0px);
-            animation: spinBorder 12s linear infinite, gentleFloat 5s ease-in-out infinite alternate;
+
+            /* 两个动画：边框旋转 + 柔和浮动 */
+            animation: spinBorder 12s linear infinite,
+                       gentleFloat 5s ease-in-out infinite alternate;
             will-change: transform, filter;
-            /* 所有可过渡属性都加上丝滑曲线 */
+
             transition:
                 transform 0.7s cubic-bezier(0.4, 0, 0.2, 1),
                 filter 0.7s cubic-bezier(0.4, 0, 0.2, 1),
@@ -133,29 +129,19 @@
                 background 0.7s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .game-card:nth-child(1) {
-            animation-delay: 0s, 0s;
-        }
-        .game-card:nth-child(2) {
-            animation-delay: 0s, 2.5s;
-        }
+        /* 每个卡片浮动错开 */
+        .game-card:nth-child(1) { animation-delay: 0s, 0s; }
+        .game-card:nth-child(2) { animation-delay: 0s, 2.5s; }
+        .game-card:nth-child(3) { animation-delay: 0s, 4.2s; }
 
         @keyframes spinBorder {
-            from {
-                --angle: 0deg;
-            }
-            to {
-                --angle: 360deg;
-            }
+            from { --angle: 0deg; }
+            to   { --angle: 360deg; }
         }
 
         @keyframes gentleFloat {
-            0% {
-                transform: translateY(-6px);
-            }
-            100% {
-                transform: translateY(6px);
-            }
+            0%   { transform: translateY(-6px); }
+            100% { transform: translateY(6px); }
         }
 
         /* ---------- 卡片内部 ---------- */
@@ -174,7 +160,7 @@
             transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* 内部旋转流光层（更柔和） */
+        /* 内部旋转流光层 */
         .game-card .inner::before {
             content: '';
             position: absolute;
@@ -191,15 +177,11 @@
         }
 
         @keyframes spinLight {
-            from {
-                --angle2: 0deg;
-            }
-            to {
-                --angle2: 360deg;
-            }
+            from { --angle2: 0deg; }
+            to   { --angle2: 360deg; }
         }
 
-        /* 内部中心光晕（持续呼吸，不受悬停影响） */
+        /* 内部中心光晕 (呼吸) */
         .game-card .inner::after {
             content: '';
             position: absolute;
@@ -214,14 +196,8 @@
         }
 
         @keyframes pulseCore {
-            0% {
-                transform: scale(0.8);
-                opacity: 0.4;
-            }
-            100% {
-                transform: scale(1.2);
-                opacity: 0.8;
-            }
+            0%   { transform: scale(0.8); opacity: 0.4; }
+            100% { transform: scale(1.2); opacity: 0.8; }
         }
 
         /* ---------- 内容 ---------- */
@@ -265,41 +241,28 @@
         }
 
         @keyframes barSlide {
-            0% {
-                transform: scaleX(0.6) translateX(-10px);
-                opacity: 0.2;
-            }
-            100% {
-                transform: scaleX(1.4) translateX(10px);
-                opacity: 0.6;
-            }
+            0%   { transform: scaleX(0.6) translateX(-10px); opacity: 0.2; }
+            100% { transform: scaleX(1.4) translateX(10px); opacity: 0.6; }
         }
 
         /* ============================================================
-               悬停交互 —— 纯丝滑，无亮度突变，无缩放
+               悬停交互 · 丝滑无突变
                ============================================================ */
         .game-card:hover {
-            /* 只做轻微上浮，不缩放 */
             transform: translateY(-10px) !important;
-            /* 不改变亮度，只改变阴影扩散范围 */
             filter: drop-shadow(0 0 40px rgba(167, 139, 250, 0.4));
-            /* 边框渐变稍微提升饱和度（但不明显变亮） */
             background: conic-gradient(from var(--angle) at 50% 50%,
                     rgba(255, 100, 200, 0.50),
                     rgba(100, 220, 255, 0.50),
                     rgba(255, 100, 200, 0.50),
                     rgba(210, 140, 255, 0.50));
             background-blend-mode: screen;
-            /* 注意：我们保留了动画，不暂停，所以边框继续旋转 */
         }
 
-        /* 悬停时内部光晕的透明度稍微提升，但亮度不变 */
         .game-card:hover .inner::after {
             background: radial-gradient(circle at center, rgba(200, 180, 255, 0.20), transparent 70%);
-            /* 不改变 filter: blur 和 animation */
         }
 
-        /* 悬停时数字颜色渐变微调（更温暖） */
         .game-card:hover .number {
             transform: rotate(-2deg) scale(1.02);
             background: linear-gradient(135deg, #f0d8b0, #ff8aae, #c084fc);
@@ -309,90 +272,74 @@
             filter: drop-shadow(0 0 30px rgba(255, 107, 157, 0.25));
         }
 
-        /* 悬停时符号上浮一点 */
         .game-card:hover .icon-symbol {
             transform: translateY(-4px);
             opacity: 0.7;
             filter: drop-shadow(0 0 12px rgba(0, 200, 255, 0.2));
         }
 
-        /* 悬停时底部装饰条略微变亮 */
         .game-card:hover .bar {
             background: linear-gradient(90deg, transparent, rgba(167, 139, 250, 0.4), transparent);
             height: 2px;
         }
 
         /* ============================================================
-               兄弟联动 —— 非悬停卡片轻微退居后台（不突变）
+               兄弟联动 · 非悬停卡片轻微退后
                ============================================================ */
-        .launcher:has(.game-card:nth-child(1):hover) .game-card:nth-child(2) {
+        .launcher:has(.game-card:nth-child(1):hover) .game-card:nth-child(2),
+        .launcher:has(.game-card:nth-child(1):hover) .game-card:nth-child(3) {
             transform: translateY(0px) !important;
             filter: saturate(0.6) blur(0.5px);
             transition: all 0.9s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .launcher:has(.game-card:nth-child(2):hover) .game-card:nth-child(1) {
+        .launcher:has(.game-card:nth-child(2):hover) .game-card:nth-child(1),
+        .launcher:has(.game-card:nth-child(2):hover) .game-card:nth-child(3) {
             transform: translateY(0px) !important;
             filter: saturate(0.6) blur(0.5px);
             transition: all 0.9s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* 保证所有状态变化都走 transition */
-        .game-card {
-            transition:
-                transform 0.7s cubic-bezier(0.4, 0, 0.2, 1),
-                filter 0.7s cubic-bezier(0.4, 0, 0.2, 1),
-                background 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+        .launcher:has(.game-card:nth-child(3):hover) .game-card:nth-child(1),
+        .launcher:has(.game-card:nth-child(3):hover) .game-card:nth-child(2) {
+            transform: translateY(0px) !important;
+            filter: saturate(0.6) blur(0.5px);
+            transition: all 0.9s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         /* ============================================================
                响应式
                ============================================================ */
+        @media (max-width: 820px) {
+            .launcher { gap: 35px; padding: 30px; }
+            .game-card { width: 220px; height: 240px; border-radius: 28px; }
+            .game-card .inner { border-radius: 24px; }
+            .game-card .number { font-size: 3.6rem; }
+            .game-card .icon-symbol { font-size: 1.6rem; }
+        }
+
         @media (max-width: 640px) {
-            .launcher {
-                gap: 30px;
-                padding: 20px;
-            }
-            .game-card {
-                width: 200px;
-                height: 220px;
-                border-radius: 24px;
-            }
-            .game-card .inner {
-                border-radius: 20px;
-            }
-            .game-card .number {
-                font-size: 3.2rem;
-            }
-            .game-card .icon-symbol {
-                font-size: 1.4rem;
-            }
-            .game-card .bar {
-                bottom: 16%;
-                width: 30%;
-            }
+            .launcher { gap: 30px; padding: 20px; }
+            .game-card { width: 200px; height: 220px; border-radius: 24px; }
+            .game-card .inner { border-radius: 20px; }
+            .game-card .number { font-size: 3.2rem; }
+            .game-card .icon-symbol { font-size: 1.4rem; }
+            .game-card .bar { bottom: 16%; width: 30%; }
         }
 
         @media (max-width: 480px) {
-            .game-card {
-                width: 160px;
-                height: 180px;
-                border-radius: 18px;
-            }
-            .game-card .inner {
-                border-radius: 14px;
-            }
-            .game-card .number {
-                font-size: 2.6rem;
-            }
+            .game-card { width: 160px; height: 180px; border-radius: 18px; }
+            .game-card .inner { border-radius: 14px; }
+            .game-card .number { font-size: 2.6rem; }
         }
     </style>
 </head>
 <body>
 
-    <!-- ===== DOM 极简 ===== -->
+    <!-- ===== DOM : 三卡片 ===== -->
     <div class="launcher">
-        <!-- 第一个卡片链接指向 http://game.rangtt.com/1 -->
+
+        <!-- 1 -->
         <a href="http://game.rangtt.com/1" target="_blank" class="game-card">
             <div class="inner">
                 <span class="number">01</span>
@@ -401,7 +348,7 @@
             </div>
         </a>
 
-        <!-- 第二个卡片链接指向 http://game.rangtt.com/2 （已修正） -->
+        <!-- 2 -->
         <a href="http://game.rangtt.com/2" target="_blank" class="game-card">
             <div class="inner">
                 <span class="number">02</span>
@@ -409,6 +356,16 @@
                 <div class="bar"></div>
             </div>
         </a>
+
+        <!-- 3 · 新增 -->
+        <a href="http://game.rangtt.com/3" target="_blank" class="game-card">
+            <div class="inner">
+                <span class="number">03</span>
+                <span class="icon-symbol">◆</span>
+                <div class="bar"></div>
+            </div>
+        </a>
+
     </div>
 
 </body>
