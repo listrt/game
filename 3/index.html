@@ -17,35 +17,37 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 12px 10px;
+      padding: 8px 6px;
       font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
       min-height: 100vh;
       justify-content: center;
+      overflow:hidden;
     }
     .game-wrapper {
       background: #141b2b;
-      padding: 20px 20px 18px;
-      border-radius: 32px;
+      padding: 14px 14px 12px;
+      border-radius: 24px;
       box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+      max-height: 96vh;
     }
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0 6px 12px 6px;
+      padding: 0 4px 10px 4px;
       flex-wrap: wrap;
-      gap: 8px 12px;
+      gap: 6px 8px;
     }
     .score-panel {
       background: #1e2740;
-      padding: 6px 18px 6px 16px;
+      padding: 4px 12px 4px 10px;
       border-radius: 60px;
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 10px;
       box-shadow: inset 0 2px 4px rgba(0,0,0,0.6);
       font-weight: 500;
-      font-size: 1rem;
+      font-size: 0.9rem;
       letter-spacing: 0.3px;
     }
     .score-panel span {
@@ -54,35 +56,33 @@
     .score-panel .value {
       color: #f7e05e;
       font-weight: 700;
-      font-size: 1.4rem;
-      min-width: 60px;
+      font-size: 1.2rem;
+      min-width: 48px;
       text-align: right;
     }
     #game {
       display: block;
       margin: 0 auto;
-      width: 100%;
-      max-width: 240px;
+      width: auto;
       height: auto;
-      aspect-ratio: 240 / 480;
-      border-radius: 16px;
+      border-radius: 12px;
       background: #0e1422;
       box-shadow: inset 0 0 0 1px #2d3855, 0 8px 18px rgba(0,0,0,0.8);
       image-rendering: crisp-edges;
     }
     .ctrl {
-      margin-top: 16px;
+      margin-top: 12px;
       display: grid;
-      grid-template-columns: 60px 60px 60px;
-      gap: 8px;
+      grid-template-columns: 54px 54px 54px;
+      gap: 6px;
       justify-content: center;
     }
     button {
-      width: 60px;
-      height: 60px;
-      font-size: 26px;
+      width: 54px;
+      height: 54px;
+      font-size: 22px;
       border: none;
-      border-radius: 18px;
+      border-radius: 14px;
       background: #212d47;
       color: #eef5ff;
       box-shadow: 0 4px 0 #0f1629, 0 6px 12px rgba(0,0,0,0.5);
@@ -102,16 +102,16 @@
       grid-column: 2;
     }
     .action-row {
-      margin-top: 14px;
+      margin-top:10px;
       display: flex;
-      gap: 16px;
+      gap: 12px;
       flex-wrap: wrap;
       justify-content: center;
     }
     #restartBtn {
-      width: 140px;
-      height: 50px;
-      font-size: 18px;
+      width: 120px;
+      height: 44px;
+      font-size: 16px;
       background: #c0392b;
       box-shadow: 0 4px 0 #7a241a, 0 6px 14px rgba(0,0,0,0.5);
       border-radius: 60px;
@@ -122,16 +122,28 @@
       box-shadow: 0 1px 0 #7a241a;
     }
     .hint {
-      margin-top: 10px;
-      font-size: 0.8rem;
+      margin-top:8px;
+      font-size: 0.72rem;
       color: #6b7ba3;
       text-align: center;
       opacity: 0.8;
     }
-    @media (max-width: 480px) {
-      .game-wrapper { padding: 14px 12px; }
-      .score-panel { font-size: 0.9rem; padding: 4px 14px; }
-      .score-panel .value { font-size: 1.2rem; min-width: 50px; }
+
+    /* 手机竖屏强约束，防止页面过长滚动 */
+    @media (max-height:680px){
+      .ctrl{
+        grid-template-columns: 46px 46px 46px;
+        gap:4px;
+      }
+      button{
+        width:46px;height:46px;font-size:20px;
+      }
+      #restartBtn{
+        width:100px;height:38px;font-size:14px;
+      }
+      .game-wrapper{
+        padding:10px 10px 8px;
+      }
     }
   </style>
 </head>
@@ -146,10 +158,10 @@
     <div class="score-panel" style="gap:6px;">
       <span>📊</span>
       <span>等级</span>
-      <span class="value" id="levelDisplay" style="min-width:30px; font-size:1.3rem;">0</span>
+      <span class="value" id="levelDisplay" style="min-width:30px; font-size:1.1rem;">0</span>
     </div>
   </div>
-  <canvas id="game" width="240" height="480"></canvas>
+  <canvas id="game"></canvas>
   <div class="ctrl">
     <button id="leftBtn">◀</button>
     <button id="rotateBtn">↻</button>
@@ -167,8 +179,29 @@
     const ctx = canvas.getContext('2d');
     const scoreSpan = document.getElementById('scoreDisplay');
     const levelSpan = document.getElementById('levelDisplay');
-    const BLOCK = 24;
+
     const COLS = 10, ROWS = 20;
+    let BLOCK = 24;
+
+    // 【JS判断设备，动态适配手机】
+    function adaptCanvasSize(){
+      const isMobile = window.innerWidth <= 600;
+      const availHeight = window.innerHeight - 240;
+      const availWidth = window.innerWidth - 40;
+
+      if(isMobile){
+        // 手机：根据屏幕可用高度计算方块大小，不溢出屏幕
+        const blockByHeight = Math.floor(availHeight / ROWS);
+        const blockByWidth = Math.floor(availWidth / COLS);
+        BLOCK = Math.min(blockByHeight, blockByWidth, 22);
+        BLOCK = Math.max(BLOCK,14);
+      }else{
+        BLOCK = 24;
+      }
+      canvas.width = COLS * BLOCK;
+      canvas.height = ROWS * BLOCK;
+    }
+
     // 经典7种方块
     const SHAPES = [
       [[1,1,1,1]],
@@ -196,6 +229,7 @@
     const restartBtn = document.getElementById('restartBtn');
     // ----- 核心函数 -----
     function initGame() {
+      adaptCanvasSize();
       clearInterval(timer);
       isGameOver = false;
       score = 0;
@@ -360,20 +394,18 @@
             }
           }
         }
-        // 高光
-        ctx.shadowBlur = 0;
       }
+      ctx.shadowBlur = 0;
       // 游戏结束文字
       if (isGameOver) {
-        ctx.shadowBlur = 0;
         ctx.fillStyle = '#ff4466';
-        ctx.font = 'bold 28px system-ui, sans-serif';
+        ctx.font = 'bold 24px system-ui, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('💔 结束', canvas.width / 2, canvas.height / 2 - 10);
-        ctx.font = '16px system-ui';
+        ctx.fillText('💔 结束', canvas.width / 2, canvas.height / 2 - 8);
+        ctx.font = '14px system-ui';
         ctx.fillStyle = '#c0d0ff';
-        ctx.fillText('点击"重新开始"', canvas.width / 2, canvas.height / 2 + 34);
+        ctx.fillText('点击"重新开始"', canvas.width / 2, canvas.height / 2 + 28);
       }
       ctx.shadowBlur = 0;
     }
@@ -385,7 +417,6 @@
     // ----- 事件绑定 (键盘 + 触摸) -----
     function handleKey(e) {
       if (isGameOver) {
-        // 允许重开快捷键 R
         if (e.key === 'r' || e.key === 'R') {
           e.preventDefault();
           initGame();
@@ -400,7 +431,11 @@
       else if (key === 'r' || key === 'R') { e.preventDefault(); initGame(); }
     }
     document.addEventListener('keydown', handleKey);
-    // 触摸按钮 (使用 touchstart 并 preventDefault)
+    // 窗口尺寸变化，重新适配
+    window.addEventListener('resize',()=>{
+      initGame();
+    })
+
     function setupButton(id, action) {
       const btn = document.getElementById(id);
       if (!btn) return;
@@ -419,16 +454,14 @@
     setupButton('rightBtn', () => { if (!checkCollision(1, 0)) { pos.x++; draw(); } });
     setupButton('rotateBtn', rotateShape);
     setupButton('downBtn', down);
-    // 重新开始 (支持 click / touch)
     restartBtn.addEventListener('click', (e) => { e.preventDefault(); initGame(); });
     restartBtn.addEventListener('touchstart', (e) => { e.preventDefault(); initGame(); });
-    // 额外：防止页面滚动 / 触摸误触
+
     document.querySelectorAll('button').forEach(b => {
       b.addEventListener('touchstart', (e) => {
         e.preventDefault();
       }, { passive: false });
     });
-    // 启动游戏
     initGame();
   })();
 </script>
