@@ -60,9 +60,13 @@
       min-width: 48px;
       text-align: right;
     }
+    .main-row{
+      display:flex;
+      gap:14px;
+      align-items:flex-start;
+    }
     #game {
       display: block;
-      margin: 0 auto;
       width: auto;
       height: auto;
       border-radius: 12px;
@@ -70,16 +74,19 @@
       box-shadow: inset 0 0 0 1px #2d3855, 0 8px 18px rgba(0,0,0,0.8);
       image-rendering: crisp-edges;
     }
+    .control-box{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
     .ctrl {
-      margin-top: 12px;
       display: grid;
-      grid-template-columns: 54px 54px 54px;
+      grid-template-columns: 50px 50px 50px;
       gap: 6px;
-      justify-content: center;
     }
     button {
-      width: 54px;
-      height: 54px;
+      width: 50px;
+      height: 50px;
       font-size: 22px;
       border: none;
       border-radius: 14px;
@@ -102,16 +109,14 @@
       grid-column: 2;
     }
     .action-row {
-      margin-top:10px;
       display: flex;
-      gap: 12px;
+      gap: 10px;
       flex-wrap: wrap;
-      justify-content: center;
     }
     #restartBtn {
-      width: 120px;
-      height: 44px;
-      font-size: 16px;
+      width: 100%;
+      height: 42px;
+      font-size: 15px;
       background: #c0392b;
       box-shadow: 0 4px 0 #7a241a, 0 6px 14px rgba(0,0,0,0.5);
       border-radius: 60px;
@@ -129,20 +134,20 @@
       opacity: 0.8;
     }
 
-    /* 手机竖屏强约束，防止页面过长滚动 */
-    @media (max-height:680px){
+    /* 屏幕很窄的竖屏，切回上下布局 */
+    @media (max-width:440px){
+      .main-row{
+        flex-direction:column;
+      }
       .ctrl{
-        grid-template-columns: 46px 46px 46px;
+        grid-template-columns: 44px 44px 44px;
         gap:4px;
       }
       button{
-        width:46px;height:46px;font-size:20px;
+        width:44px;height:44px;font-size:20px;
       }
       #restartBtn{
-        width:100px;height:38px;font-size:14px;
-      }
-      .game-wrapper{
-        padding:10px 10px 8px;
+        height:38px;font-size:14px;
       }
     }
   </style>
@@ -161,15 +166,19 @@
       <span class="value" id="levelDisplay" style="min-width:30px; font-size:1.1rem;">0</span>
     </div>
   </div>
-  <canvas id="game"></canvas>
-  <div class="ctrl">
-    <button id="leftBtn">◀</button>
-    <button id="rotateBtn">↻</button>
-    <button id="rightBtn">▶</button>
-    <button id="downBtn">▼</button>
-  </div>
-  <div class="action-row">
-    <button id="restartBtn">↺ 重新开始</button>
+  <div class="main-row">
+    <canvas id="game"></canvas>
+    <div class="control-box">
+      <div class="ctrl">
+        <button id="leftBtn">◀</button>
+        <button id="rotateBtn">↻</button>
+        <button id="rightBtn">▶</button>
+        <button id="downBtn">▼</button>
+      </div>
+      <div class="action-row">
+        <button id="restartBtn">↺ 重新开始</button>
+      </div>
+    </div>
   </div>
   <div class="hint">键盘 ↑旋转 ↓加速  ← → 移动</div>
 </div>
@@ -183,14 +192,12 @@
     const COLS = 10, ROWS = 20;
     let BLOCK = 24;
 
-    // 【JS判断设备，动态适配手机】
     function adaptCanvasSize(){
       const isMobile = window.innerWidth <= 600;
-      const availHeight = window.innerHeight - 240;
-      const availWidth = window.innerWidth - 40;
+      const availHeight = window.innerHeight - 220;
+      const availWidth = window.innerWidth - 140;
 
       if(isMobile){
-        // 手机：根据屏幕可用高度计算方块大小，不溢出屏幕
         const blockByHeight = Math.floor(availHeight / ROWS);
         const blockByWidth = Math.floor(availWidth / COLS);
         BLOCK = Math.min(blockByHeight, blockByWidth, 22);
@@ -202,7 +209,6 @@
       canvas.height = ROWS * BLOCK;
     }
 
-    // 经典7种方块
     const SHAPES = [
       [[1,1,1,1]],
       [[1,1],[1,1]],
@@ -212,7 +218,7 @@
       [[1,1,0],[0,1,1]],
       [[0,1,1],[1,1,0]]
     ];
-    // ----- 游戏状态 -----
+
     let board = [];
     let shape = null;
     let pos = { x: 3, y: 0 };
@@ -220,14 +226,14 @@
     let isGameOver = false;
     let score = 0;
     let level = 0;
-    let dropInterval = 600; // ms
-    // ----- DOM 元素 -----
+    let dropInterval = 600;
+
     const leftBtn = document.getElementById('leftBtn');
     const rightBtn = document.getElementById('rightBtn');
     const rotateBtn = document.getElementById('rotateBtn');
     const downBtn = document.getElementById('downBtn');
     const restartBtn = document.getElementById('restartBtn');
-    // ----- 核心函数 -----
+
     function initGame() {
       adaptCanvasSize();
       clearInterval(timer);
@@ -250,20 +256,19 @@
         }
       }, dropInterval);
     }
-    // 生成新方块 (返回是否成功)
+
     function spawnNewShape() {
       const idx = Math.floor(Math.random() * SHAPES.length);
-      shape = SHAPES[idx].map(row => [...row]); // 深拷贝
+      shape = SHAPES[idx].map(row => [...row]);
       pos.x = Math.floor((COLS - shape[0].length) / 2);
       pos.y = 0;
-      // 碰撞检测 -> game over
       if (checkCollision(0, 0, shape)) {
         gameOver();
         return false;
       }
       return true;
     }
-    // 碰撞检测 (偏移量 + 自定义形状)
+
     function checkCollision(offX = 0, offY = 0, shapeToCheck = shape) {
       for (let y = 0; y < shapeToCheck.length; y++) {
         for (let x = 0; x < shapeToCheck[y].length; x++) {
@@ -277,7 +282,7 @@
       }
       return false;
     }
-    // 旋转 (顺时针)
+
     function rotateShape() {
       if (isGameOver || !shape) return;
       const rotated = shape[0].map((_, i) => shape.map(row => row[i]).reverse());
@@ -286,7 +291,7 @@
         draw();
       }
     }
-    // 下移 (由定时器或按钮触发)
+
     function down() {
       if (isGameOver || !shape) return;
       if (!checkCollision(0, 1)) {
@@ -296,10 +301,9 @@
         mergeAndClear();
       }
     }
-    // 合并 + 消行 + 积分
+
     function mergeAndClear() {
       if (!shape) return;
-      // 固定到面板
       for (let y = 0; y < shape.length; y++) {
         for (let x = 0; x < shape[y].length; x++) {
           if (shape[y][x]) {
@@ -311,7 +315,6 @@
           }
         }
       }
-      // 消除满行 并 累计积分
       let cleared = 0;
       for (let y = ROWS - 1; y >= 0; ) {
         if (board[y].every(v => v === 1)) {
@@ -322,17 +325,13 @@
           y--;
         }
       }
-      // 每消除一行 +1积分
       if (cleared > 0) {
         const addScore = cleared;
         score += addScore;
-        // 等级提升: 每200分升1级 (可调整)
         const newLevel = Math.floor(score / 200);
         if (newLevel > level) {
           level = newLevel;
-          // 速度: 基础600ms, 每级减30ms, 最快100ms
           dropInterval = Math.max(100, 600 - level * 30);
-          // 重置定时器
           clearInterval(timer);
           timer = setInterval(() => {
             if (!isGameOver) down();
@@ -340,21 +339,20 @@
         }
         updateScoreUI();
       }
-      // 生成下一个方块
       const success = spawnNewShape();
       draw();
     }
+
     function gameOver() {
       if (isGameOver) return;
       isGameOver = true;
       clearInterval(timer);
       draw();
     }
-    // ----- 绘制 -----
+
     function draw() {
       ctx.fillStyle = '#0e1422';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      // 网格线 (微光)
       ctx.strokeStyle = '#1f2a44';
       ctx.lineWidth = 0.6;
       for (let y = 0; y <= ROWS; y++) {
@@ -369,7 +367,6 @@
         ctx.lineTo(x * BLOCK, canvas.height);
         ctx.stroke();
       }
-      // 固定方块
       ctx.fillStyle = '#3d9eff';
       ctx.shadowColor = '#3d9eff';
       ctx.shadowBlur = 4;
@@ -380,7 +377,6 @@
           }
         }
       }
-      // 活动方块
       if (!isGameOver && shape) {
         ctx.fillStyle = '#f7d44a';
         ctx.shadowColor = '#f7b84a';
@@ -396,7 +392,6 @@
         }
       }
       ctx.shadowBlur = 0;
-      // 游戏结束文字
       if (isGameOver) {
         ctx.fillStyle = '#ff4466';
         ctx.font = 'bold 24px system-ui, sans-serif';
@@ -409,12 +404,12 @@
       }
       ctx.shadowBlur = 0;
     }
-    // ----- UI 更新 -----
+
     function updateScoreUI() {
       scoreSpan.textContent = score;
       levelSpan.textContent = level;
     }
-    // ----- 事件绑定 (键盘 + 触摸) -----
+
     function handleKey(e) {
       if (isGameOver) {
         if (e.key === 'r' || e.key === 'R') {
@@ -431,7 +426,6 @@
       else if (key === 'r' || key === 'R') { e.preventDefault(); initGame(); }
     }
     document.addEventListener('keydown', handleKey);
-    // 窗口尺寸变化，重新适配
     window.addEventListener('resize',()=>{
       initGame();
     })
